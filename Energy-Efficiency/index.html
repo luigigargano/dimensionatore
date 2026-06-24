@@ -55,6 +55,10 @@ input[type=text],input[type=number],select{width:100%;padding:13px 14px;font-siz
   border:1.5px solid var(--bordo);border-radius:11px;background:#fff;color:#1a241d;outline:none}
 input:focus,select:focus{border-color:var(--verde2);box-shadow:0 0 0 3px rgba(46,125,67,.12)}
 .hint{font-size:12px;color:var(--grigio);margin-top:5px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+.duo label{margin-top:14px}
+.pref{display:inline-block;font-size:9.5px;font-weight:800;color:#fff;background:var(--verde2);
+  border-radius:9px;padding:1px 6px;vertical-align:middle;letter-spacing:.2px;text-transform:uppercase}
 .seg{display:flex;gap:6px;margin-top:6px}
 .seg button{flex:1;padding:11px 6px;font-size:14px;font-weight:600;border:1.5px solid var(--bordo);
   background:#fff;color:#26302a;border-radius:11px;cursor:pointer;transition:.15s}
@@ -193,20 +197,27 @@ summary:before{content:"⚙ ";}
     </div>
     <div class="hint" id="zonainfo"></div>
 
-    <label>Quanto spendi di luce?</label>
-    <input type="number" id="spesa" inputmode="decimal" placeholder="es. 250">
+    <div class="duo">
+      <div>
+        <label>Spesa di luce</label>
+        <input type="number" id="spesa" inputmode="decimal" placeholder="es. 250">
+      </div>
+      <div>
+        <label>kWh / anno <span class="pref">più preciso</span></label>
+        <input type="number" id="consumo" inputmode="decimal" placeholder="da bolletta">
+      </div>
+    </div>
     <div class="seg" id="periodo">
       <button data-p="mensile">al mese</button>
       <button data-p="bimestrale" class="on">a bimestre</button>
       <button data-p="annuale">all'anno</button>
     </div>
+    <div class="hint">La fascia "al mese / bimestre / anno" vale per la spesa. Se conosci i <b>kWh annui</b> (dalla bolletta), inseriscili: hanno la priorità e danno la stima più precisa.</div>
 
     <details>
       <summary>Opzioni avanzate (facoltative)</summary>
       <label>Prezzo medio energia (€/kWh)</label>
       <input type="number" id="prezzo" step="0.01" value="0.36">
-      <label>Oppure consumo reale da bolletta (kWh/anno)</label>
-      <input type="number" id="consumo" placeholder="se lo conosci, ha la priorità">
       <label>Consumi futuri previsti</label>
       <div class="toggrid">
         <label class="tog"><input type="checkbox" id="pdc"> Pompa di calore</label>
