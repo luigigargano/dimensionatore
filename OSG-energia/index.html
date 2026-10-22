@@ -501,9 +501,18 @@ function calcola(){
   const db = pdc ? C.DIRECT_BASE_PDC : C.DIRECT_BASE;
 
   // --- FV: produzione ~ consumo (offset 90-100%) su producibilita' PVGIS reale ---
-  const fv = Math.min(10, Math.max(3, Math.ceil((consumoDim*C.QUOTA/resa)/0.5)*0.5));
+  // --- FV: calcolo libero fino a 20 kWp, con boost se copertura bassa ---
+  let fv = Math.min(20, Math.max(3, Math.ceil((consumoDim*C.QUOTA/resa)/0.5)*0.5));
+  // Boost: se dopo la batteria la copertura è ancora bassa, aumenta i kWp (entro 20)
+  let acc = pickBattery(consumoDim, fv, resa, db);
+  let cov = autosuff(consumoDim, fv, resa, acc, db).covCon;
+  while (cov < C.TARGET_SS - 0.05 && fv < 20) {
+    fv = Math.min(20, fv + 0.5);
+    acc = pickBattery(consumoDim, fv, resa, db);
+    cov = autosuff(consumoDim, fv, resa, acc, db).covCon;
+  }
   // --- Batteria: taglia reale {5,10,15,20}, arrotondata in su verso il target ---
-  const acc = pickBattery(consumoDim, fv, resa, db);
+  // acc already computed in the boost loop above
 
   const prod = fv*resa;
   const a = autosuff(consumoDim, fv, resa, acc, db);
@@ -612,13 +621,43 @@ async function generaPDF(r){
 }
 </script>
 
+
+
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+let deferredPrompt;
+const installBtn = document.createElement("button");
+installBtn.id = "installBtn";
+installBtn.textContent = "Installa app";
+installBtn.style.cssText = "position:fixed;bottom:16px;right:16px;z-index:9999;padding:12px 18px;background:#1F5C2E;color:#fff;border:none;border-radius:999px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none;cursor:pointer;";
+document.body.appendChild(installBtn);
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = "block";
+});
+
+installBtn.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  installBtn.style.display = "none";
+});
+
+window.addEventListener("appinstalled", () => {
+  installBtn.style.display = "none";
+  deferredPrompt = null;
+});
+
+// Existing SW registration
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
   });
 }
 </script>
+
 </body>
 </html>
 
