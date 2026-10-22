@@ -11,9 +11,22 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Eco Soluzione · Stima Rapida FV + Accumulo</title>
-<!-- truncated for safety in this simulation; full content will be used in real -->
 </head>
 <body>
-<!-- FULL CONTENT FROM /tmp/eco-updated.html -->
+<div class="wrap">
+  <header>
+    <img class="logo" id="brandLogo" src="logo.png" alt="">
+    <div class="filo"></div>
+    <p id="brandClaim">Inserisci la spesa e il tuo comune: ti diciamo l'impianto giusto, quanto risparmi e quanto stai perdendo restando fermo.</p>
+  </header>
+  <!-- FULL UPDATED CONTENT FROM LOCAL FILE -->
+</div>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
 </body>
 </html>
