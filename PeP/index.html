@@ -501,18 +501,28 @@ function calcola(){
   const db = pdc ? C.DIRECT_BASE_PDC : C.DIRECT_BASE;
 
   // --- FV: produzione ~ consumo (offset 90-100%) su producibilita' PVGIS reale ---
-  // --- FV: calcolo libero fino a 20 kWp, con boost se copertura bassa ---
-  let fv = Math.min(20, Math.max(3, Math.ceil((consumoDim*C.QUOTA/resa)/0.5)*0.5));
-  // Boost: se dopo la batteria la copertura è ancora bassa, aumenta i kWp (entro 20)
-  let acc = pickBattery(consumoDim, fv, resa, db);
-  let cov = autosuff(consumoDim, fv, resa, acc, db).covCon;
-  while (cov < C.TARGET_SS - 0.05 && fv < 20) {
-    fv = Math.min(20, fv + 0.5);
-    acc = pickBattery(consumoDim, fv, resa, db);
-    cov = autosuff(consumoDim, fv, resa, acc, db).covCon;
+  // === LOGICA PROFESSIONALE (F1 / F2+F3) ===
+  const F1_SHARE = 0.35;          // quota tipica diurna famiglie italiane
+  const F23_SHARE = 1 - F1_SHARE; // sera + notte + weekend
+  const consumoF1 = consumoDim * F1_SHARE;
+  const consumoF23 = consumoDim * F23_SHARE;
+
+  // FV: produzione annua ≈ consumo (criterio GSE), max 20 kWp
+  let fv = Math.min(20, Math.max(3, Math.ceil((consumoDim * C.QUOTA / resa) / 0.5) * 0.5));
+
+  // Batteria: basata sul consumo medio giornaliero serale (F2+F3)
+  const dailyEvening = consumoF23 / 365;
+  let acc = Math.min(20, Math.max(5, Math.ceil(dailyEvening * 0.85 / 5) * 5)); // arrotonda a moduli 5 kWh
+
+  // Verifica surplus utile (produzione - autoconsumo diretto)
+  const prod = fv * resa;
+  const direct = Math.min(consumoF1, prod * 0.55); // autoconsumo diretto realistico
+  const surplus = Math.max(0, prod - direct);
+  const dailySurplus = surplus / 365;
+  // Se surplus insufficiente, riduci leggermente la batteria
+  if (dailySurplus < dailyEvening * 0.6) {
+    acc = Math.max(5, Math.min(acc, Math.ceil(dailySurplus * 0.9 / 5) * 5));
   }
-  // --- Batteria: taglia reale {5,10,15,20}, arrotondata in su verso il target ---
-  // acc already computed in the boost loop above
 
   const prod = fv*resa;
   const a = autosuff(consumoDim, fv, resa, acc, db);
