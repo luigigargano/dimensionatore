@@ -524,7 +524,6 @@ function calcola(){
     acc = Math.max(5, Math.min(acc, Math.ceil(dailySurplus * 0.9 / 5) * 5));
   }
 
-  const prod = fv*resa;
   const a = autosuff(consumoDim, fv, resa, acc, db);
   const covSenza = a.covSenza, covCon = a.covCon;
   const autoSenza = covSenza*consumoDim, autoCon = covCon*consumoDim;
